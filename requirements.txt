@@ -1,0 +1,13 @@
+pandas
+numpy
+xgboost
+optuna
+snorkel
+scipy
+matplotlib
+seaborn
+shap
+scikit-learn
+jupyter
+pyarrow
+fastparquet

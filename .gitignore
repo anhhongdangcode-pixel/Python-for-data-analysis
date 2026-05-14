@@ -1,0 +1,16 @@
+# Data folders
+input/
+output/
+model/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+ENV/
+
+# OS
+.DS_Store
+Thumbs.db
