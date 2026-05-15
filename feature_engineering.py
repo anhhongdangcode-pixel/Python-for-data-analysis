@@ -282,21 +282,23 @@ buys["volatility_5d_rolling_std_10"] = (
 # NHÓM 9 — NEW MARKET FEATURES
 # ════════════════════════════════════════════════════════════════════════════
 
-# 31. volatility_ratio — đã tính trong data_builder.py
-# volatility_5d / volatility_10d — đã có sẵn trong enriched file
+# 31. volatility_ratio
+buys["volatility_ratio"] = buys["volatility_5d"] / buys["volatility_10d"].replace(0, np.nan)
 
-# 32. market_breadth — đã tính trong data_builder.py
-# % assets đang tăng giá trong ngày — đã có sẵn trong enriched file
+# 32. market_breadth
+# Tính % assets đang tăng giá trong ngày
+daily_asset_ret = all_trades.groupby([all_trades["timestamp"].dt.date.rename("date"), "asset_id"])["return_1d"].first().reset_index()
+daily_breadth = daily_asset_ret.groupby("date")["return_1d"].apply(lambda x: (x > 0).mean()).reset_index(name="market_breadth")
+buys = buys.merge(daily_breadth, on="date", how="left")
 
-# 33. ema_12 — đã tính trong data_builder.py
-# 34. ema_26 — đã tính trong data_builder.py
+# Cần có cột close_price trong buys
+buys["close_price"] = buys["market_price"]
 
-# Kiểm tra và warn nếu thiếu
-for new_col in ["volatility_ratio", "market_breadth", "ema_12", "ema_26"]:
-    if new_col not in buys.columns:
-        print(f"  [WARNING] {new_col} không có trong enriched file")
-        print(f"            → Chạy lại make_clean_data.py với data_builder.py mới")
-        buys[new_col] = np.nan
+# 33. ema_12
+buys["ema_12"] = buys.groupby("asset_id")["close_price"].transform(lambda x: x.ewm(span=12, adjust=False).mean())
+
+# 34. ema_26
+buys["ema_26"] = buys.groupby("asset_id")["close_price"].transform(lambda x: x.ewm(span=26, adjust=False).mean())
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -345,6 +347,7 @@ FEATURE_COLS = [
     # ── NEW market features ──────────────────────────────────────
     "volatility_ratio",
     "market_breadth",
+    "close_price",
     "ema_12",
     "ema_26",
 ]
